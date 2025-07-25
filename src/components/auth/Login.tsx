@@ -7,7 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 interface LoginForm {
   email: string;
   password: string;
-  role: 'buyer' | 'seller';
+  role: 'buyer' | 'seller' | 'admin';
 }
 
 const Login: React.FC = () => {
@@ -25,10 +25,24 @@ const Login: React.FC = () => {
 
   const onSubmit = async (data: LoginForm) => {
     try {
+      console.log('🔄 Enviando datos de login:', data);
       await login(data.email, data.password, data.role);
-      navigate(data.role === 'seller' ? '/dashboard/vendedor' : '/');
+      
+      console.log('✅ Login completado, redirigiendo...');
+      
+      // Redireccionar según el rol
+      if (data.role === 'admin') {
+        console.log('➡️ Redirigiendo a admin dashboard');
+        navigate('/admin/dashboard');
+      } else if (data.role === 'seller') {
+        console.log('➡️ Redirigiendo a seller dashboard');
+        navigate('/vendedor/dashboard');
+      } else {
+        console.log('➡️ Redirigiendo a home');
+        navigate('/');
+      }
     } catch (error) {
-      console.error('Error al iniciar sesión:', error);
+      console.error('❌ Error al iniciar sesión:', error);
     }
   };
 
@@ -51,7 +65,7 @@ const Login: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-3">
               Tipo de cuenta
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <label className="relative">
                 <input
                   type="radio"
@@ -85,6 +99,24 @@ const Login: React.FC = () => {
                   <User className="h-6 w-6 text-emerald-600 mx-auto mb-2" />
                   <span className="text-sm font-medium text-gray-900 block text-center">
                     Vendedor
+                  </span>
+                </div>
+              </label>
+              <label className="relative">
+                <input
+                  type="radio"
+                  value="admin"
+                  {...register('role')}
+                  className="sr-only"
+                />
+                <div className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${
+                  selectedRole === 'admin' 
+                    ? 'border-emerald-500 bg-emerald-50' 
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}>
+                  <Store className="h-6 w-6 text-emerald-600 mx-auto mb-2" />
+                  <span className="text-sm font-medium text-gray-900 block text-center">
+                    Admin
                   </span>
                 </div>
               </label>

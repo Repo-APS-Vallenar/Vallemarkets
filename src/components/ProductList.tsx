@@ -3,6 +3,7 @@ import { Search, Filter, Grid, List } from 'lucide-react';
 import ProductCard from './ProductCard';
 import { Product } from '../contexts/CartContext';
 import { productsAPI, categoriesAPI } from '../services/api';
+import { demoProducts, demoCategories } from '../data/demoData';
 
 interface Category {
   id: string;
@@ -32,6 +33,11 @@ const ProductList: React.FC = () => {
       setFilteredProducts(response.products || []);
     } catch (error) {
       console.error('Error loading products:', error);
+      console.log('🔄 Cargando productos de demostración...');
+      
+      // Usar productos de demostración cuando no hay backend
+      setProducts(demoProducts);
+      setFilteredProducts(demoProducts);
     } finally {
       setLoading(false);
     }
@@ -43,6 +49,10 @@ const ProductList: React.FC = () => {
       setCategoriesList(response.categories || []);
     } catch (error) {
       console.error('Error loading categories:', error);
+      console.log('🔄 Cargando categorías de demostración...');
+      
+      // Usar categorías de demostración
+      setCategoriesList(demoCategories);
     }
   };
 

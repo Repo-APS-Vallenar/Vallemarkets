@@ -144,7 +144,14 @@ router.post('/', authenticateToken, authorizeRoles('seller', 'admin'), [
   body('price').isFloat({ min: 0.01 }).withMessage('El precio debe ser mayor a 0'),
   body('categoryId').isUUID().withMessage('ID de categoría inválido'),
   body('stock').isInt({ min: 0 }).withMessage('Stock debe ser un número no negativo'),
-  body('image').optional().isURL().withMessage('URL de imagen inválida')
+  body('image').optional().custom((value) => {
+    if (!value) return true; // Campo opcional
+    // Permitir URLs válidas o rutas de archivos locales que empiecen con /uploads/
+    if (value.startsWith('/uploads/') || /^https?:\/\/.+/.test(value)) {
+      return true;
+    }
+    throw new Error('La imagen debe ser una URL válida o un archivo subido');
+  })
 ], async (req, res) => {
   try {
     console.log('=== CREANDO PRODUCTO ===');
@@ -209,7 +216,14 @@ router.put('/:id', authenticateToken, authorizeRoles('seller', 'admin'), [
   body('description').optional().trim().isLength({ min: 10 }).withMessage('La descripción debe tener al menos 10 caracteres'),
   body('price').optional().isFloat({ min: 0.01 }).withMessage('El precio debe ser mayor a 0'),
   body('stock').optional().isInt({ min: 0 }).withMessage('Stock debe ser un número no negativo'),
-  body('image').optional().isURL().withMessage('URL de imagen inválida')
+  body('image').optional().custom((value) => {
+    if (!value) return true; // Campo opcional
+    // Permitir URLs válidas o rutas de archivos locales que empiecen con /uploads/
+    if (value.startsWith('/uploads/') || /^https?:\/\/.+/.test(value)) {
+      return true;
+    }
+    throw new Error('La imagen debe ser una URL válida o un archivo subido');
+  })
 ], async (req, res) => {
   try {
     const errors = validationResult(req);

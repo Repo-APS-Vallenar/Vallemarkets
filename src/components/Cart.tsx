@@ -2,9 +2,21 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
+import { formatCLP } from '../utils/currency';
 
 const Cart: React.FC = () => {
   const { items, total, removeFromCart, updateQuantity, clearCart } = useCart();
+
+  // Función para obtener URL completa de imagen
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) {
+      return 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=1';
+    }
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    return `http://localhost:3001${imagePath}`;
+  };
 
   if (items.length === 0) {
     return (
@@ -43,14 +55,18 @@ const Cart: React.FC = () => {
             {items.map((item) => (
               <div key={item.id} className="flex items-center p-6 border-b border-gray-200 last:border-b-0">
                 <img
-                  src={item.image}
+                  src={getImageUrl(item.image)}
                   alt={item.name}
                   className="h-20 w-20 object-cover rounded-lg"
+                  onError={(e) => {
+                    // Si falla la imagen, mostrar placeholder
+                    e.currentTarget.src = 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=1';
+                  }}
                 />
                 <div className="ml-4 flex-1">
                   <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
                   <p className="text-sm text-gray-600">{item.sellerName}</p>
-                  <p className="text-lg font-bold text-emerald-600">${item.price.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-emerald-600">{formatCLP(item.price)}</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
@@ -85,7 +101,7 @@ const Cart: React.FC = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span>${total.toLocaleString()}</span>
+                <span>{formatCLP(total)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Envío:</span>
@@ -94,7 +110,7 @@ const Cart: React.FC = () => {
               <div className="border-t pt-3">
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total:</span>
-                  <span className="text-emerald-600">${total.toLocaleString()}</span>
+                  <span className="text-emerald-600">{formatCLP(total)}</span>
                 </div>
               </div>
             </div>

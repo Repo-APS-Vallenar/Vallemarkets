@@ -5,6 +5,7 @@ import { CreditCard, MapPin, User } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrder } from '../contexts/OrderContext';
+import { formatCLP } from '../utils/currency';
 
 interface CheckoutForm {
   firstName: string;
@@ -48,17 +49,18 @@ const Checkout: React.FC = () => {
         }
       };
 
-      await createOrder(orderData);
-      clearCart();
+      const order = await createOrder(orderData);
       
-      // Simulación de integración con MercadoPago
-      setTimeout(() => {
-        setIsProcessing(false);
-        navigate('/checkout/success');
-      }, 2000);
+      if (order) {
+        clearCart();
+        // Redirigir a página de pago
+        navigate(`/checkout/payment/${order.id}`);
+      }
     } catch (error) {
+      console.error('Error creating order:', error);
+      alert('Error al crear la orden. Por favor intenta nuevamente.');
+    } finally {
       setIsProcessing(false);
-      console.error('Error al crear el pedido:', error);
     }
   };
 
@@ -241,14 +243,14 @@ const Checkout: React.FC = () => {
                     <p className="text-xs text-gray-600">Cantidad: {item.quantity}</p>
                   </div>
                   <span className="text-sm font-medium text-gray-900">
-                    ${(item.price * item.quantity).toLocaleString()}
+                    {formatCLP(item.price * item.quantity)}
                   </span>
                 </div>
               ))}
               <div className="border-t pt-3">
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total:</span>
-                  <span className="text-emerald-600">${total.toLocaleString()}</span>
+                  <span className="text-emerald-600">{formatCLP(total)}</span>
                 </div>
               </div>
             </div>

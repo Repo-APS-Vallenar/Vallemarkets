@@ -1,5 +1,7 @@
 import { executeQuery } from '../config/database.js';
 import { randomUUID } from 'crypto';
+import CommissionServiceV2 from './CommissionServiceV2.js';
+import { EmailService } from './EmailService.js';
 
 /**
  * Servicio para manejar la lógica de órdenes y pagos
@@ -251,6 +253,73 @@ export class OrderService {
           updated_at = NOW()
       WHERE id = ?
     `, [orderId]);
+  }
+
+  /**
+   * Marcar orden como entregada
+   */
+  static async completeOrder(orderId) {
+    try {
+      // Obtener datos de la orden y comprador
+      const orderData = await executeQuery(`
+        SELECT o.*, u.name as buyer_name, u.email as buyer_email
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
+        WHERE o.id = ? AND o.status = 'accepted'
+      `, [orderId]);
+
+      if (orderData.length === 0) {
+        throw new Error('Orden no encontrada o no está aceptada');
+      }
+
+      const order = orderData[0];
+
+      // Obtener items de la orden con datos del vendedor
+      const orderItems = await executeQuery(`
+        SELECT oi.*, u.name as seller_name, u.email as seller_email
+        FROM order_items oi
+        JOIN users u ON oi.seller_id = u.id
+        WHERE oi.order_id = ?
+      `, [orderId]);
+
+      // Actualizar estado de la orden
+      await executeQuery(`
+        UPDATE orders 
+        SET status = 'completed',
+            delivered_at = NOW(),
+            updated_at = NOW()
+        WHERE id = ?
+      `, [orderId]);
+
+      // Calcular y registrar comisiones por cada item vendido
+      for (const orderItem of orderItems) {
+        const commission = await CommissionServiceV2.calculateCommission(orderId, orderItem.seller_id);
+        
+        // Notificar al vendedor sobre la comisión ganada
+        if (commission) {
+          await EmailService.notifyCommissionEarned(
+            orderItem.seller_email,
+            orderItem.seller_name,
+            orderId,
+            commission.amount
+          );
+        }
+      }
+
+      // Notificar al comprador que su orden fue completada
+      await EmailService.notifyOrderCompleted(
+        order.buyer_email,
+        order.buyer_name,
+        orderId,
+        order.total
+      );
+
+      console.log(`✅ Orden completada y comisiones calculadas: ${orderId}`);
+      return true;
+    } catch (error) {
+      console.error('Error completing order:', error);
+      throw error;
+    }
   }
 
   /**

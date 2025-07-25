@@ -5,6 +5,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useOrder } from '../../contexts/OrderContext';
 import { Product } from '../../contexts/CartContext';
 import { productsAPI, categoriesAPI } from '../../services/api';
+import { formatCLP } from '../../utils/currency';
+import ImageUpload from '../ImageUpload';
 
 interface ProductForm {
   name: string;
@@ -30,8 +32,24 @@ const SellerDashboard: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentImage, setCurrentImage] = useState<string>('');
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<ProductForm>();
+
+  // Función para obtener URL completa de imagen
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) {
+      console.log('⚠️ No hay imagen para el producto');
+      return '/placeholder-image.jpg'; // Imagen por defecto
+    }
+    if (imagePath.startsWith('http')) {
+      console.log('🔗 URL externa:', imagePath);
+      return imagePath;
+    }
+    const fullUrl = `http://localhost:3001${imagePath}`;
+    console.log('🖼️ URL construida:', fullUrl);
+    return fullUrl;
+  };
 
   // Cargar productos y categorías al montar el componente
   useEffect(() => {
@@ -43,6 +61,11 @@ const SellerDashboard: React.FC = () => {
     try {
       setLoading(true);
       const response = await productsAPI.getMyProducts();
+      console.log('📦 Productos cargados:', response.products);
+      console.log('🖼️ Primeras 3 imágenes:', response.products?.slice(0, 3).map((p: any) => ({
+        name: p.name,
+        image: p.image
+      })));
       setProducts(response.products || []);
     } catch (error) {
       console.error('Error loading products:', error);
@@ -105,6 +128,7 @@ const SellerDashboard: React.FC = () => {
   const handleAddProduct = () => {
     setEditingProduct(null);
     reset();
+    setCurrentImage('');
     setShowProductModal(true);
   };
 
@@ -116,6 +140,7 @@ const SellerDashboard: React.FC = () => {
     setValue('category', product.category);
     setValue('stock', product.stock);
     setValue('image', product.image);
+    setCurrentImage(product.image || '');
     setShowProductModal(true);
   };
 
@@ -198,6 +223,7 @@ const SellerDashboard: React.FC = () => {
   const closeModal = () => {
     setShowProductModal(false);
     setEditingProduct(null);
+    setCurrentImage('');
     reset();
   };
 
@@ -298,7 +324,7 @@ const SellerDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Ingresos Totales</p>
-                <p className="text-2xl font-bold text-gray-900">${totalRevenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCLP(totalRevenue)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-600" />
             </div>
@@ -336,15 +362,20 @@ const SellerDashboard: React.FC = () => {
                 products.map(product => (
                   <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                     <img 
-                      src={product.image} 
+                      src={getImageUrl(product.image)} 
                       alt={product.name}
                       className="h-48 w-full object-cover"
+                      onError={(e) => {
+                        console.log('❌ Error cargando imagen:', product.image);
+                        // Si falla la imagen, mostrar placeholder
+                        e.currentTarget.src = 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=1';
+                      }}
                     />
                     <div className="p-4">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
                       <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xl font-bold text-emerald-600">${product.price.toLocaleString()}</span>
+                        <span className="text-xl font-bold text-emerald-600">{formatCLP(product.price)}</span>
                         <span className="text-sm text-gray-500">Stock: {product.stock}</span>
                       </div>
                       <div className="flex space-x-2 mt-4">
@@ -398,7 +429,7 @@ const SellerDashboard: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <p className="text-sm text-gray-600">Fecha: {new Date(order.createdAt).toLocaleDateString()}</p>
-                      <p className="text-sm text-gray-600">Total: ${order.total.toLocaleString()}</p>
+                      <p className="text-sm text-gray-600">Total: {formatCLP(order.total)}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Dirección de envío:</p>
@@ -414,7 +445,7 @@ const SellerDashboard: React.FC = () => {
                       <div key={item.productId} className="flex items-center justify-between py-2">
                         <span className="text-sm text-gray-900">{item.productName}</span>
                         <span className="text-sm text-gray-600">
-                          Cantidad: {item.quantity} | ${(item.price * item.quantity).toLocaleString()}
+                          Cantidad: {item.quantity} | {formatCLP(item.price * item.quantity)}
                         </span>
                       </div>
                     ))}
@@ -549,16 +580,47 @@ const SellerDashboard: React.FC = () => {
                   )}
                 </div>
 
+                <ImageUpload
+                  currentImage={currentImage}
+                  onImageChange={(imageUrl) => {
+                    console.log('📸 Imagen subida:', imageUrl);
+                    setCurrentImage(imageUrl);
+                    setValue('image', imageUrl);
+                  }}
+                  onImageRemove={() => {
+                    console.log('🗑️ Imagen removida');
+                    setCurrentImage('');
+                    setValue('image', '');
+                  }}
+                  className="mb-4"
+                />
+
+                <div className="text-center my-4">
+                  <span className="text-gray-500 text-sm bg-gray-50 px-3 py-1 rounded">
+                    O alternativamente
+                  </span>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    URL de la imagen
+                    Pegar URL de imagen
                   </label>
                   <input
                     type="url"
-                    {...register('image', { required: 'Este campo es requerido' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                    placeholder="https://images.pexels.com/..."
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    onBlur={(e) => {
+                      const url = e.target.value.trim();
+                      if (url && url !== currentImage) {
+                        console.log('🔗 URL pegada:', url);
+                        setCurrentImage(url);
+                        setValue('image', url);
+                      }
+                    }}
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Solo llena este campo si quieres usar una imagen externa
+                  </p>
                   {errors.image && (
                     <p className="text-red-600 text-sm mt-1">{errors.image.message}</p>
                   )}

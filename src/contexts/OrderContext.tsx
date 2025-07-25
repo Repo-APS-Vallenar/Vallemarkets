@@ -29,7 +29,7 @@ interface OrderState {
 }
 
 interface OrderContextType extends OrderState {
-  createOrder: (orderData: Partial<Order>) => Promise<void>;
+  createOrder: (orderData: Partial<Order>) => Promise<Order | null>;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   getOrdersByUser: (userId: string) => Order[];
   getOrdersBySeller: (sellerId: string) => Order[];
@@ -80,7 +80,7 @@ const OrderContext = createContext<OrderContextType | undefined>(undefined);
 export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(orderReducer, initialState);
 
-  const createOrder = async (orderData: Partial<Order>) => {
+  const createOrder = async (orderData: Partial<Order>): Promise<Order | null> => {
     dispatch({ type: 'CREATE_ORDER_START' });
     try {
       const newOrder: Order = {
@@ -105,6 +105,8 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const savedOrders = JSON.parse(localStorage.getItem('orders') || '[]');
       savedOrders.push(newOrder);
       localStorage.setItem('orders', JSON.stringify(savedOrders));
+      
+      return newOrder;
       
     } catch (error) {
       dispatch({ type: 'CREATE_ORDER_FAILURE' });

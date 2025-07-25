@@ -2,6 +2,7 @@ import React from 'react';
 import { Package, Truck, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrder } from '../../contexts/OrderContext';
+import { formatCLP } from '../../utils/currency';
 
 const OrderStatus: React.FC = () => {
   const { user } = useAuth();
@@ -90,7 +91,7 @@ const OrderStatus: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total del pedido:</p>
-                  <p className="text-lg font-bold text-emerald-600">${order.total.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-emerald-600">{formatCLP(order.total)}</p>
                 </div>
               </div>
 
@@ -106,7 +107,7 @@ const OrderStatus: React.FC = () => {
                       <div className="text-right">
                         <p className="text-sm text-gray-600">Cantidad: {item.quantity}</p>
                         <p className="text-sm font-medium text-gray-900">
-                          ${(item.price * item.quantity).toLocaleString()}
+                          {formatCLP(item.price * item.quantity)}
                         </p>
                       </div>
                     </div>

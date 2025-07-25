@@ -43,6 +43,14 @@ const Navbar: React.FC = () => {
                 Mi Tienda
               </Link>
             )}
+            {isAuthenticated && user?.role === 'admin' && (
+              <Link 
+                to="/dashboard/admin" 
+                className={`${isActive('/dashboard/admin') ? 'text-emerald-600 border-b-2 border-emerald-600' : 'text-gray-700 hover:text-emerald-600'} pb-1 transition-colors`}
+              >
+                Admin Panel
+              </Link>
+            )}
             {isAuthenticated && user?.role === 'buyer' && (
               <Link 
                 to="/mis-pedidos" 

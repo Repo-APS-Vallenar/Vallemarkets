@@ -10,11 +10,11 @@ const Footer: React.FC = () => {
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <Store className="h-8 w-8 text-emerald-400" />
-              <span className="text-xl font-bold">PymeMarket</span>
+              <span className="text-xl font-bold">Valle Markets</span>
             </div>
             <p className="text-gray-400 mb-4">
-              Conectamos PyMEs locales con compradores, fortaleciendo el comercio 
-              y apoyando el crecimiento económico de nuestra comunidad.
+              Conectamos PyMEs locales con compradores en Vallenar y la región, 
+              fortaleciendo el comercio local y apoyando el crecimiento económico.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-emerald-400 transition-colors">
@@ -62,15 +62,15 @@ const Footer: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-emerald-400" />
-                <span className="text-gray-400">info@pymemarket.com</span>
+                <span className="text-gray-400">vallemarkets@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-emerald-400" />
-                <span className="text-gray-400">+57 300 123 4567</span>
+                <span className="text-gray-400">+569 9 1234 5678</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-emerald-400" />
-                <span className="text-gray-400">Bogotá, Colombia</span>
+                <span className="text-gray-400">Vallenar, Chile</span>
               </div>
             </div>
           </div>
@@ -78,7 +78,7 @@ const Footer: React.FC = () => {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            © 2024 PymeMarket. Todos los derechos reservados.
+            © 2025 Valle Markets. Todos los derechos reservados.
           </p>
         </div>
       </div>
